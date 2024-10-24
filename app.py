@@ -1,54 +1,51 @@
+from google.cloud import vision
+import io
 import streamlit as st
 from pdf2image import convert_from_bytes
-import pytesseract
-from PIL import Image
+import os
+import numpy as np  # Adicionando a importação do numpy
 import cv2
-import numpy as np
-import tempfile
+
+# Configuração inicial
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = \
+    '/Users/guilh/OneDrive/Desenvolvimento/CREDENTIALS/GOOGLE CLOUD VISION/powerful-link-184817-43039c887712.json'
 
 
-# Função de pré-processamento da imagem
-def preprocess_image(image):
-    gray = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2GRAY)  # Converte para escala de cinza
-    _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)  # Binariza a imagem
-    return Image.fromarray(binary)
+def google_cloud_vision_ocr(image):
+    client = vision.ImageAnnotatorClient()
+    success, encoded_image = cv2.imencode('.png', image)
+    content = encoded_image.tobytes()
+
+    image = vision.Image(content=content)
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+
+    if response.error.message:
+        raise Exception(f'{response.error.message}')
+
+    return texts[0].description if texts else ""
 
 
-st.title("PDF OCR com Pré-processamento")
+st.title("OCR com Google Cloud Vision")
+uploaded_file = st.file_uploader("Envie o arquivo PDF", type="pdf")
 
-# Upload do PDF
-uploaded_file = st.file_uploader("Envie um arquivo PDF", type="pdf")
-
-if uploaded_file is not None:
-    # Convertendo o PDF para imagens (uma por página)
+if uploaded_file:
     pages = convert_from_bytes(uploaded_file.read(), dpi=300)
-
-    # Inicializa o texto transcrito
     all_text = ""
 
-    # Processando página por página
-    for i, page in enumerate(pages):
-        st.write(f"Página {i + 1}")
+    for page_num, page in enumerate(pages):
+        page_data = np.array(page)
+        page_data = cv2.cvtColor(page_data, cv2.COLOR_RGB2BGR)
 
-        # Pré-processamento da imagem
-        processed_image = preprocess_image(page)
+        # Extração com Google Cloud Vision OCR
+        ocr_text = google_cloud_vision_ocr(page_data)
+        all_text += f"\n\nPágina {page_num + 1}:\n{ocr_text}"
 
-        # Mostrando a imagem pré-processada
-        st.image(processed_image, caption=f"Imagem pré-processada da Página {i + 1}")
+        # Exibir imagem pós-processada e download da imagem
+        st.image(page_data, caption=f'Página {page_num + 1}', use_column_width=True)
 
-        # Extraindo texto da imagem pré-processada
-        page_text = pytesseract.image_to_string(processed_image, lang='por')
+    # Exibir o texto completo extraído
+    st.text_area("Texto extraído:", all_text, height=300)
 
-        # Adicionando o texto ao resultado final
-        all_text += f"\n\n--- Página {i + 1} ---\n\n" + page_text
-
-    # Mostrando o texto extraído
-    st.text_area("Texto Extraído", all_text, height=300)
-
-    # Opção para baixar o texto como arquivo .txt
-    st.download_button(
-        label="Baixar texto extraído",
-        data=all_text,
-        file_name="texto_extraido.pdf",
-        mime="text/plain"
-    )
+    # Opção para baixar o texto extraído
+    st.download_button("Baixar o texto extraído", all_text, file_name="texto_extraido.txt")
