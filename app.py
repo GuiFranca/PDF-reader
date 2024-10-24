@@ -1,34 +1,54 @@
 import streamlit as st
-import pytesseract
 from pdf2image import convert_from_bytes
+import pytesseract
+from PIL import Image
+import cv2
+import numpy as np
+import tempfile
 
-st.title('Extração de Texto de Matrículas PDF')
 
-# Upload do arquivo PDF
+# Função de pré-processamento da imagem
+def preprocess_image(image):
+    gray = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2GRAY)  # Converte para escala de cinza
+    _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)  # Binariza a imagem
+    return Image.fromarray(binary)
+
+
+st.title("PDF OCR com Pré-processamento")
+
+# Upload do PDF
 uploaded_file = st.file_uploader("Envie um arquivo PDF", type="pdf")
 
-# Se um arquivo foi enviado, comece o processamento
 if uploaded_file is not None:
-    st.write("Processando o arquivo...")
-
-    # Converter PDF para uma lista de imagens
+    # Convertendo o PDF para imagens (uma por página)
     pages = convert_from_bytes(uploaded_file.read(), dpi=300)
-    texto_extraido = ""
 
-    # Processar cada página com OCR
-    for page_number, page_data in enumerate(pages):
-        texto = pytesseract.image_to_string(page_data, lang='por')  # OCR com suporte ao português
-        texto_extraido += f'\n--- Página {page_number + 1} ---\n'
-        texto_extraido += texto
+    # Inicializa o texto transcrito
+    all_text = ""
 
-    # Exibir o texto extraído
-    st.subheader("Texto Extraído")
-    st.text_area("Texto do PDF", value=texto_extraido, height=300)
+    # Processando página por página
+    for i, page in enumerate(pages):
+        st.write(f"Página {i + 1}")
 
-    # Botão para baixar o texto extraído
+        # Pré-processamento da imagem
+        processed_image = preprocess_image(page)
+
+        # Mostrando a imagem pré-processada
+        st.image(processed_image, caption=f"Imagem pré-processada da Página {i + 1}")
+
+        # Extraindo texto da imagem pré-processada
+        page_text = pytesseract.image_to_string(processed_image, lang='por')
+
+        # Adicionando o texto ao resultado final
+        all_text += f"\n\n--- Página {i + 1} ---\n\n" + page_text
+
+    # Mostrando o texto extraído
+    st.text_area("Texto Extraído", all_text, height=300)
+
+    # Opção para baixar o texto como arquivo .txt
     st.download_button(
         label="Baixar texto extraído",
-        data=texto_extraido,
-        file_name="texto_extraido.txt",
+        data=all_text,
+        file_name="texto_extraido.pdf",
         mime="text/plain"
     )
