@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7e6c77d9-473c-4ea4-9e6b-d919d02d710d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/PDFreader.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/PDFreader.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="7e6c77d9-473c-4ea4-9e6b-d919d02d710d" name="Changes" comment="feat: include google vision">
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -73,6 +70,19 @@
       <option name="presentableId" value="Default" />
       <updated>1729704466646</updated>
     </task>
+    <task id="LOCAL-00001" summary="feat: include google vision">
+      <option name="closed" value="true" />
+      <created>1729792080787</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1729792080787</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: include google vision" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: include google vision" />
   </component>
 </project>
